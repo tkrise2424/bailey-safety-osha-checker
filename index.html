@@ -11,7 +11,7 @@
     header img { height: 46px; object-fit: contain; }
     header .tagline { font-size: 12px; color: #aaa; margin-top: 3px; letter-spacing: 0.5px; }
     .container { width: 100%; max-width: 780px; padding: 32px 16px 60px; }
-    h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; line-height: 1.3; }
+    h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
     .subtitle { font-size: 13px; color: #999; margin-bottom: 28px; line-height: 1.5; }
     .upload-zone { border: 2px dashed #333; border-radius: 12px; padding: 40px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #141414; position: relative; }
     .upload-zone:hover, .upload-zone.drag-over { border-color: #2e7d32; background: #0d1f0e; }
@@ -93,12 +93,14 @@
   </footer>
 
   <script>
-    const API_BASE    = 'https://api.mercenarymarketing.ai';
+    const PROXY       = 'https://orange-darkness-5b99.todd-e70.workers.dev';
     const API_KEY     = 'PfUpEEvwpTGXdLOMckTtfZUNf7ExNaa2g8hJG91p8Q2FiKAV';
     const COMPANY_ID  = 'smocvtg8lc5dwkjs';
     const EMPLOYEE_ID = 'pisf8fb2gdj9oin5';
 
-    const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector. Analyze the workplace photo and respond in EXACTLY this format:
+    const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector with deep knowledge of all OSHA standards including construction (29 CFR 1926), general industry (29 CFR 1910), and related safety regulations.
+
+Analyze the workplace photo and respond in EXACTLY this format:
 
 **VERDICT: [PASS or FAIL]**
 
@@ -154,13 +156,13 @@
       errorMsg.classList.remove('visible');
 
       try {
-        // Step 1: Upload image to get a public URL
+        // Step 1: Upload image via proxy to get a public URL
         loadingMsg.textContent = 'Uploading photo\u2026';
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('companyId', COMPANY_ID);
 
-        const uploadRes = await fetch(`${API_BASE}/api/v0/images/upload`, {
+        const uploadRes = await fetch(`${PROXY}/api/v0/images/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${API_KEY}` },
           body: formData
@@ -171,9 +173,9 @@
         const imageUrl = uploadData.publicUrl || uploadData.url;
         if (!imageUrl) throw new Error('No image URL returned.');
 
-        // Step 2: Analyze with vision
+        // Step 2: Send image URL to employee for OSHA analysis
         loadingMsg.textContent = 'Analyzing for OSHA compliance\u2026';
-        const chatRes = await fetch(`${API_BASE}/api/v0/employees/chat`, {
+        const chatRes = await fetch(`${PROXY}/api/v0/employees/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
           body: JSON.stringify({
