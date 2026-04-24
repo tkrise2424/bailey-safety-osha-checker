@@ -75,7 +75,7 @@
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p id="loadingMsg">Analyzing for OSHA compliance&hellip;</p>
+      <p id="loadingMsg">Uploading image&hellip;</p>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -93,25 +93,7 @@
   </footer>
 
   <script>
-    const PROXY       = 'https://orange-darkness-5b99.todd-e70.workers.dev';
-    const API_KEY     = 'PfUpEEvwpTGXdLOMckTtfZUNf7ExNaa2g8hJG91p8Q2FiKAV';
-    const EMPLOYEE_ID = 'pisf8fb2gdj9oin5';
-
-    const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector with deep knowledge of all OSHA standards including construction (29 CFR 1926), general industry (29 CFR 1910), and related safety regulations.
-
-Analyze the workplace photo and respond in EXACTLY this format:
-
-**VERDICT: [PASS or FAIL]**
-
-**Situation Identified:** [Brief description]
-
-**Applicable OSHA Standard(s):** [CFR citations]
-
-**Analysis:** [Detailed explanation]
-
-**Corrective Action Required:** [What needs fixing, or 'No action required.' if PASS]
-
-**Top Violation Alert:** [Name the top violation from https://roisafetyservices.com/top-osha-violations/ if it matches, otherwise 'N/A']`;
+    const WORKER = 'https://orange-darkness-5b99.todd-e70.workers.dev';
 
     const uploadZone   = document.getElementById('uploadZone');
     const fileInput    = document.getElementById('fileInput');
@@ -126,8 +108,8 @@ Analyze the workplace photo and respond in EXACTLY this format:
     const resetBtn     = document.getElementById('resetBtn');
     const errorMsg     = document.getElementById('errorMsg');
 
-    let selectedFile = null;
     let dataUrl = null;
+    let mimeType = 'image/jpeg';
 
     uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
@@ -137,11 +119,9 @@ Analyze the workplace photo and respond in EXACTLY this format:
     function handleFile(file) {
       if (!file.type.startsWith('image/')) { showError('Please upload an image file.'); return; }
       if (file.size > 10 * 1024 * 1024) { showError('File is too large. Max 10MB.'); return; }
-      selectedFile = file;
+      mimeType = file.type || 'image/jpeg';
       const reader = new FileReader();
       reader.onload = e => {
-        dataUrl = e.target.result;
-        // Resize to keep payload small
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -168,23 +148,29 @@ Analyze the workplace photo and respond in EXACTLY this format:
       if (!dataUrl) return;
       checkBtn.disabled = true;
       loading.classList.add('visible');
+      loadingMsg.textContent = 'Uploading image\u2026';
       resultCard.classList.remove('visible');
       errorMsg.classList.remove('visible');
 
       try {
-        const res = await fetch(`${PROXY}/api/v0/employees/chat`, {
+        // Strip the data URL prefix to get raw base64
+        const base64 = dataUrl.split(',')[1];
+
+        loadingMsg.textContent = 'Analyzing for OSHA compliance\u2026';
+
+        const res = await fetch(WORKER, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
-          body: JSON.stringify({
-            employeeId: EMPLOYEE_ID,
-            message: SYSTEM_PROMPT,
-            settings: { model: 'gpt-4o', image: dataUrl, documents: false }
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' })
         });
 
-        if (!res.ok) throw new Error(`Analysis failed (${res.status})`);
         const data = await res.json();
-        const text = data.response || data.fullText || JSON.stringify(data);
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Analysis failed (' + res.status + ')');
+        }
+
+        const text = data.response || data.fullText || data.body || JSON.stringify(data);
         renderResult(text);
 
       } catch (err) {
@@ -217,7 +203,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
         if (match && match[1].trim()) {
           const content = match[1].trim().replace(/\n/g, '<br/>');
           const isAlert = key === 'Top Violation Alert' && !/^N\/A$/i.test(match[1].trim());
-          html += `<div class="section${isAlert ? ' violation-alert' : ''}"><div class="section-label">${label}</div><div class="section-content">${content}</div></div>`;
+          html += '<div class="section' + (isAlert ? ' violation-alert' : '') + '"><div class="section-label">' + label + '</div><div class="section-content">' + content + '</div></div>';
         }
       });
 
@@ -232,7 +218,6 @@ Analyze the workplace photo and respond in EXACTLY this format:
     }
 
     resetBtn.addEventListener('click', () => {
-      selectedFile = null;
       dataUrl = null;
       fileInput.value = '';
       previewImg.src = '';
