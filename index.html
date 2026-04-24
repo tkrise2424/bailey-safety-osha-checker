@@ -21,19 +21,19 @@
       width: 100%;
       background: #111;
       border-bottom: 3px solid #C0392B;
-      padding: 18px 32px;
+      padding: 16px 20px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     header img {
-      height: 52px;
+      height: 46px;
       object-fit: contain;
     }
 
     header .tagline {
-      font-size: 13px;
+      font-size: 12px;
       color: #aaa;
       margin-top: 3px;
       letter-spacing: 0.5px;
@@ -42,27 +42,29 @@
     .container {
       width: 100%;
       max-width: 780px;
-      padding: 40px 24px 60px;
+      padding: 32px 16px 60px;
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 700;
       color: #fff;
       margin-bottom: 6px;
+      line-height: 1.3;
     }
 
     .subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: #999;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
+      line-height: 1.5;
     }
 
     /* Upload Zone */
     .upload-zone {
       border: 2px dashed #444;
       border-radius: 12px;
-      padding: 48px 24px;
+      padding: 40px 16px;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
@@ -84,25 +86,19 @@
       height: 100%;
     }
 
-    .upload-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
+    .upload-icon { font-size: 42px; margin-bottom: 10px; }
 
     .upload-zone h2 {
-      font-size: 18px;
+      font-size: 16px;
       color: #fff;
       margin-bottom: 6px;
     }
 
-    .upload-zone p {
-      font-size: 13px;
-      color: #888;
-    }
+    .upload-zone p { font-size: 12px; color: #888; }
 
     /* Preview */
     .preview-wrap {
-      margin-top: 24px;
+      margin-top: 20px;
       display: none;
       flex-direction: column;
       align-items: center;
@@ -113,7 +109,7 @@
 
     .preview-wrap img {
       max-width: 100%;
-      max-height: 320px;
+      max-height: 280px;
       border-radius: 10px;
       border: 2px solid #333;
       object-fit: contain;
@@ -124,12 +120,15 @@
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 14px 36px;
+      padding: 14px 0;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
       letter-spacing: 0.3px;
+      width: 100%;
+      max-width: 360px;
+      touch-action: manipulation;
     }
 
     .btn-check:hover { background: #a93226; }
@@ -141,7 +140,7 @@
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      margin-top: 32px;
+      margin-top: 28px;
     }
 
     .loading.visible { display: flex; }
@@ -162,7 +161,7 @@
     /* Result Card */
     .result-card {
       display: none;
-      margin-top: 32px;
+      margin-top: 28px;
       background: #222;
       border-radius: 12px;
       overflow: hidden;
@@ -172,48 +171,68 @@
     .result-card.visible { display: block; }
 
     .result-header {
-      padding: 18px 24px;
-      font-size: 20px;
+      padding: 16px 20px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: 0.3px;
     }
 
     .result-header.pass { background: #1a3a1a; color: #4caf50; border-bottom: 3px solid #4caf50; }
     .result-header.fail { background: #3a1a1a; color: #e74c3c; border-bottom: 3px solid #e74c3c; }
+    .result-header.neutral { background: #2a2a2a; color: #fff; border-bottom: 3px solid #555; }
 
     .result-body {
-      padding: 24px;
-      line-height: 1.7;
-      font-size: 15px;
+      padding: 20px;
+      font-size: 14px;
       color: #ddd;
-      white-space: pre-wrap;
+      line-height: 1.7;
     }
 
-    .result-body strong {
-      color: #fff;
-      display: block;
-      margin-top: 14px;
-      margin-bottom: 2px;
-      font-size: 13px;
+    .result-body .section {
+      margin-bottom: 16px;
+    }
+
+    .result-body .section-label {
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #aaa;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 600;
     }
 
-    .result-body p { margin-bottom: 8px; }
+    .result-body .section-content {
+      color: #e0e0e0;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .violation-alert {
+      background: #3a2000;
+      border: 1px solid #e67e22;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 4px;
+    }
+
+    .violation-alert .section-content {
+      color: #f39c12;
+      font-weight: 600;
+    }
 
     .reset-btn {
       display: block;
-      margin: 20px 24px 24px;
+      margin: 16px 20px 20px;
       background: transparent;
       color: #C0392B;
       border: 1px solid #C0392B;
       border-radius: 8px;
-      padding: 10px 24px;
+      padding: 12px 24px;
       font-size: 14px;
       cursor: pointer;
       transition: background 0.2s, color 0.2s;
-      width: calc(100% - 48px);
+      width: calc(100% - 40px);
+      touch-action: manipulation;
     }
 
     .reset-btn:hover { background: #C0392B; color: #fff; }
@@ -221,23 +240,36 @@
     /* Error */
     .error-msg {
       display: none;
-      margin-top: 20px;
+      margin-top: 16px;
       background: #3a1a1a;
       border: 1px solid #e74c3c;
       border-radius: 8px;
-      padding: 14px 18px;
+      padding: 14px 16px;
       color: #e74c3c;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .error-msg.visible { display: block; }
 
     footer {
       margin-top: auto;
-      padding: 20px;
-      font-size: 12px;
+      padding: 20px 16px;
+      font-size: 11px;
       color: #555;
       text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 480px) {
+      header img { height: 38px; }
+      h1 { font-size: 19px; }
+      .upload-zone { padding: 32px 12px; }
+      .upload-icon { font-size: 36px; }
+      .upload-zone h2 { font-size: 15px; }
+      .result-header { font-size: 16px; }
+      .result-body { padding: 16px; }
+      .result-body .section-content { font-size: 13px; }
     }
   </style>
 </head>
@@ -252,12 +284,12 @@
 
   <div class="container">
     <h1>OSHA Compliance Photo Checker</h1>
-    <p class="subtitle">Upload a photo of a workplace situation and get an instant compliance verdict with cited OSHA standards.</p>
+    <p class="subtitle">Upload a workplace photo and get an instant compliance verdict with cited OSHA standards.</p>
 
     <div class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept="image/*" />
+      <input type="file" id="fileInput" accept="image/*" capture="environment" />
       <div class="upload-icon">📷</div>
-      <h2>Drop a photo here or click to upload</h2>
+      <h2>Tap to take a photo or upload</h2>
       <p>Supports JPG, PNG, WEBP &mdash; max 10MB</p>
     </div>
 
@@ -268,7 +300,7 @@
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p>Analyzing photo for OSHA compliance&hellip;</p>
+      <p>Analyzing for OSHA compliance&hellip;</p>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -280,14 +312,17 @@
     </div>
   </div>
 
-  <footer>Powered by Bailey Safety &bull; AI-assisted analysis is advisory only &bull; Always consult a certified safety professional</footer>
+  <footer>
+    Powered by Bailey Safety &bull; AI-assisted analysis is advisory only<br/>
+    Always consult a certified safety professional for official determinations
+  </footer>
 
   <script>
     const AGENT_ID = 'a47adc6b-6ada-44d6-9695-1e17dbe3d402';
     const API_BASE = 'https://api.mercenarymarketing.ai';
 
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput  = document.getElementById('fileInput');
+    const uploadZone  = document.getElementById('uploadZone');
+    const fileInput   = document.getElementById('fileInput');
     const previewWrap = document.getElementById('previewWrap');
     const previewImg  = document.getElementById('previewImg');
     const checkBtn    = document.getElementById('checkBtn');
@@ -301,7 +336,7 @@
     let selectedFile = null;
     let sessionId = crypto.randomUUID();
 
-    // Drag & drop
+    // Drag & drop (desktop)
     uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
     uploadZone.addEventListener('drop', e => {
@@ -337,11 +372,9 @@
       errorMsg.classList.remove('visible');
 
       try {
-        // Convert image to base64
         const base64 = await toBase64(selectedFile);
         const mimeType = selectedFile.type;
 
-        // Send to platform agent
         const res = await fetch(`${API_BASE}/api/v0/agents/${AGENT_ID}/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -374,30 +407,44 @@
     }
 
     function renderResult(text) {
-      const isPass = /VERDICT.*PASS/i.test(text);
-      const isFail = /VERDICT.*FAIL/i.test(text);
+      const isPass = /VERDICT[^\n]*PASS/i.test(text);
+      const isFail = /VERDICT[^\n]*FAIL/i.test(text);
 
       if (isPass) {
-        resultHeader.textContent = '✅ PASS — Compliant';
+        resultHeader.textContent = '\u2705 PASS \u2014 Compliant';
         resultHeader.className = 'result-header pass';
       } else if (isFail) {
-        resultHeader.textContent = '❌ FAIL — Violation Detected';
+        resultHeader.textContent = '\u274c FAIL \u2014 Violation Detected';
         resultHeader.className = 'result-header fail';
       } else {
-        resultHeader.textContent = '🔍 Analysis Complete';
-        resultHeader.className = 'result-header';
-        resultHeader.style.background = '#2a2a2a';
-        resultHeader.style.color = '#fff';
-        resultHeader.style.borderBottom = '3px solid #555';
+        resultHeader.textContent = '\ud83d\udd0d Analysis Complete';
+        resultHeader.className = 'result-header neutral';
       }
 
-      // Format markdown-style bold labels
-      const formatted = text
-        .replace(/\*\*VERDICT:.*?\*\*/g, '') // remove verdict line (already in header)
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br/>');
+      // Parse sections
+      const sections = [
+        { key: 'Situation Identified',      label: 'Situation Identified' },
+        { key: 'Applicable OSHA Standard',  label: 'Applicable OSHA Standard(s)' },
+        { key: 'Analysis',                  label: 'Analysis' },
+        { key: 'Corrective Action Required',label: 'Corrective Action Required' },
+        { key: 'Top Violation Alert',        label: '\u26a0\ufe0f Top Violation Alert' },
+      ];
 
-      resultBody.innerHTML = formatted;
+      let html = '';
+      sections.forEach(({ key, label }) => {
+        const regex = new RegExp('\\*\\*' + key + '[^*]*\\*\\*[:\\s]*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)', 'i');
+        const match = text.match(regex);
+        if (match && match[1].trim()) {
+          const content = match[1].trim().replace(/\n/g, '<br/>');
+          const isAlert = key === 'Top Violation Alert' && !/^N\/A$/i.test(match[1].trim());
+          html += `<div class="section${isAlert ? ' violation-alert' : ''}">`;
+          html += `<div class="section-label">${label}</div>`;
+          html += `<div class="section-content">${content}</div>`;
+          html += `</div>`;
+        }
+      });
+
+      resultBody.innerHTML = html || text.replace(/\n/g, '<br/>');
       resultCard.classList.add('visible');
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
