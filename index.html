@@ -75,7 +75,7 @@
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p id="loadingMsg">Uploading photo&hellip;</p>
+      <p id="loadingMsg">Analyzing for OSHA compliance&hellip;</p>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -95,7 +95,6 @@
   <script>
     const PROXY       = 'https://orange-darkness-5b99.todd-e70.workers.dev';
     const API_KEY     = 'PfUpEEvwpTGXdLOMckTtfZUNf7ExNaa2g8hJG91p8Q2FiKAV';
-    const COMPANY_ID  = 'smocvtg8lc5dwkjs';
     const EMPLOYEE_ID = 'pisf8fb2gdj9oin5';
 
     const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector with deep knowledge of all OSHA standards including construction (29 CFR 1926), general industry (29 CFR 1910), and related safety regulations.
@@ -128,6 +127,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
     const errorMsg     = document.getElementById('errorMsg');
 
     let selectedFile = null;
+    let dataUrl = null;
 
     uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
@@ -140,54 +140,51 @@ Analyze the workplace photo and respond in EXACTLY this format:
       selectedFile = file;
       const reader = new FileReader();
       reader.onload = e => {
-        previewImg.src = e.target.result;
-        previewWrap.classList.add('visible');
-        resultCard.classList.remove('visible');
-        errorMsg.classList.remove('visible');
+        dataUrl = e.target.result;
+        // Resize to keep payload small
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX = 1024;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          previewImg.src = dataUrl;
+          previewWrap.classList.add('visible');
+          resultCard.classList.remove('visible');
+          errorMsg.classList.remove('visible');
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
     checkBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+      if (!dataUrl) return;
       checkBtn.disabled = true;
       loading.classList.add('visible');
       resultCard.classList.remove('visible');
       errorMsg.classList.remove('visible');
 
       try {
-        // Step 1: Upload image via proxy to get a public URL
-        loadingMsg.textContent = 'Uploading photo\u2026';
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('companyId', COMPANY_ID);
-
-        const uploadRes = await fetch(`${PROXY}/api/v0/images/upload`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${API_KEY}` },
-          body: formData
-        });
-
-        if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`);
-        const uploadData = await uploadRes.json();
-        const imageUrl = uploadData.publicUrl || uploadData.url;
-        if (!imageUrl) throw new Error('No image URL returned.');
-
-        // Step 2: Send image URL to employee for OSHA analysis
-        loadingMsg.textContent = 'Analyzing for OSHA compliance\u2026';
-        const chatRes = await fetch(`${PROXY}/api/v0/employees/chat`, {
+        const res = await fetch(`${PROXY}/api/v0/employees/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
           body: JSON.stringify({
             employeeId: EMPLOYEE_ID,
             message: SYSTEM_PROMPT,
-            settings: { model: 'gpt-4o', image: imageUrl, documents: false }
+            settings: { model: 'gpt-4o', image: dataUrl, documents: false }
           })
         });
 
-        if (!chatRes.ok) throw new Error(`Analysis failed (${chatRes.status})`);
-        const chatData = await chatRes.json();
-        const text = chatData.response || chatData.fullText || JSON.stringify(chatData);
+        if (!res.ok) throw new Error(`Analysis failed (${res.status})`);
+        const data = await res.json();
+        const text = data.response || data.fullText || JSON.stringify(data);
         renderResult(text);
 
       } catch (err) {
@@ -236,6 +233,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
 
     resetBtn.addEventListener('click', () => {
       selectedFile = null;
+      dataUrl = null;
       fileInput.value = '';
       previewImg.src = '';
       previewWrap.classList.remove('visible');
