@@ -75,7 +75,7 @@
 
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p>Analyzing for OSHA compliance&hellip;</p>
+      <p id="loadingMsg">Uploading photo&hellip;</p>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
@@ -93,11 +93,12 @@
   </footer>
 
   <script>
-    const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector with deep knowledge of all OSHA standards including construction (29 CFR 1926), general industry (29 CFR 1910), and related safety regulations.
+    const API_BASE    = 'https://api.mercenarymarketing.ai';
+    const API_KEY     = 'PfUpEEvwpTGXdLOMckTtfZUNf7ExNaa2g8hJG91p8Q2FiKAV';
+    const COMPANY_ID  = 'smocvtg8lc5dwkjs';
+    const EMPLOYEE_ID = 'pisf8fb2gdj9oin5';
 
-You use the top OSHA violations reference guide at https://roisafetyservices.com/top-osha-violations/ as a primary reference when identifying common violations.
-
-Analyze the workplace photo and respond in EXACTLY this format:
+    const SYSTEM_PROMPT = `You are an expert OSHA compliance inspector. Analyze the workplace photo and respond in EXACTLY this format:
 
 **VERDICT: [PASS or FAIL]**
 
@@ -109,10 +110,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
 
 **Corrective Action Required:** [What needs fixing, or 'No action required.' if PASS]
 
-**Top Violation Alert:** [Name the top violation from roisafetyservices.com/top-osha-violations/ if it matches, otherwise 'N/A']`;
-
-    const API_URL = 'https://api.mercenarymarketing.ai/api/v0/chat/completions';
-    const API_KEY = 'agent_a47adc6b-6ada-44d6-9695-1e17dbe3d402';
+**Top Violation Alert:** [Name the top violation from https://roisafetyservices.com/top-osha-violations/ if it matches, otherwise 'N/A']`;
 
     const uploadZone   = document.getElementById('uploadZone');
     const fileInput    = document.getElementById('fileInput');
@@ -120,6 +118,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
     const previewImg   = document.getElementById('previewImg');
     const checkBtn     = document.getElementById('checkBtn');
     const loading      = document.getElementById('loading');
+    const loadingMsg   = document.getElementById('loadingMsg');
     const resultCard   = document.getElementById('resultCard');
     const resultHeader = document.getElementById('resultHeader');
     const resultBody   = document.getElementById('resultBody');
@@ -127,7 +126,6 @@ Analyze the workplace photo and respond in EXACTLY this format:
     const errorMsg     = document.getElementById('errorMsg');
 
     let selectedFile = null;
-    let dataUrl = null;
 
     uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
@@ -140,8 +138,7 @@ Analyze the workplace photo and respond in EXACTLY this format:
       selectedFile = file;
       const reader = new FileReader();
       reader.onload = e => {
-        dataUrl = e.target.result;
-        previewImg.src = dataUrl;
+        previewImg.src = e.target.result;
         previewWrap.classList.add('visible');
         resultCard.classList.remove('visible');
         errorMsg.classList.remove('visible');
@@ -150,43 +147,47 @@ Analyze the workplace photo and respond in EXACTLY this format:
     }
 
     checkBtn.addEventListener('click', async () => {
-      if (!selectedFile || !dataUrl) return;
+      if (!selectedFile) return;
       checkBtn.disabled = true;
       loading.classList.add('visible');
       resultCard.classList.remove('visible');
       errorMsg.classList.remove('visible');
 
       try {
-        const res = await fetch(API_URL, {
+        // Step 1: Upload image to get a public URL
+        loadingMsg.textContent = 'Uploading photo\u2026';
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('companyId', COMPANY_ID);
+
+        const uploadRes = await fetch(`${API_BASE}/api/v0/images/upload`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`
-          },
+          headers: { 'Authorization': `Bearer ${API_KEY}` },
+          body: formData
+        });
+
+        if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`);
+        const uploadData = await uploadRes.json();
+        const imageUrl = uploadData.publicUrl || uploadData.url;
+        if (!imageUrl) throw new Error('No image URL returned.');
+
+        // Step 2: Analyze with vision
+        loadingMsg.textContent = 'Analyzing for OSHA compliance\u2026';
+        const chatRes = await fetch(`${API_BASE}/api/v0/employees/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
           body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              { role: 'system', content: SYSTEM_PROMPT },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: 'Please analyze this workplace photo for OSHA compliance.' },
-                  { type: 'image_url', image_url: { url: dataUrl } }
-                ]
-              }
-            ],
-            max_tokens: 1000
+            employeeId: EMPLOYEE_ID,
+            message: SYSTEM_PROMPT,
+            settings: { model: 'gpt-4o', image: imageUrl, documents: false }
           })
         });
 
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(`API ${res.status}: ${err}`);
-        }
-
-        const data = await res.json();
-        const text = data.choices?.[0]?.message?.content || 'No response received.';
+        if (!chatRes.ok) throw new Error(`Analysis failed (${chatRes.status})`);
+        const chatData = await chatRes.json();
+        const text = chatData.response || chatData.fullText || JSON.stringify(chatData);
         renderResult(text);
+
       } catch (err) {
         showError('Something went wrong: ' + err.message);
       } finally {
@@ -198,7 +199,6 @@ Analyze the workplace photo and respond in EXACTLY this format:
     function renderResult(text) {
       const isPass = /VERDICT[^\n]*PASS/i.test(text);
       const isFail = /VERDICT[^\n]*FAIL/i.test(text);
-
       if (isPass) { resultHeader.textContent = '\u2705 PASS \u2014 Compliant'; resultHeader.className = 'result-header pass'; }
       else if (isFail) { resultHeader.textContent = '\u274c FAIL \u2014 Violation Detected'; resultHeader.className = 'result-header fail'; }
       else { resultHeader.textContent = '\ud83d\udd0d Analysis Complete'; resultHeader.className = 'result-header neutral'; }
@@ -234,7 +234,6 @@ Analyze the workplace photo and respond in EXACTLY this format:
 
     resetBtn.addEventListener('click', () => {
       selectedFile = null;
-      dataUrl = null;
       fileInput.value = '';
       previewImg.src = '';
       previewWrap.classList.remove('visible');
